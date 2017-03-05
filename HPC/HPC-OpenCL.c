@@ -1,3 +1,7 @@
+/*High-performace computing coursework. Single threaded fluid dynamics algorith
+  provided. My contribution primarily code in Main.
+  HPC-OpenCL uses the OpenCL libraries to run algorithm in parallel on University
+  of Bristol's BlueCrystal supercomputer GPUs*/
 
 #define _GNU_SOURCE
 #include <stdio.h>

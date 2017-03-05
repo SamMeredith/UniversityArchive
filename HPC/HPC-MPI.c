@@ -1,3 +1,8 @@
+/*High-performance computing coursework. Single threaded fluid dynamics algorithm provided.
+  My contribution primarily functions within 'timestep'.
+  HPC-MPI uses message passing (physically local distributed communication) and master-
+  slave multi-threading to speed up algorithm*/
+
 /*
 ** Code to implement a d2q9-bgk lattice boltzmann scheme.
 ** 'd2' inidates a 2-dimensional grid, and
