@@ -3,6 +3,13 @@
   ({__typeof__ (a) _a = (a); \
     __typeof__ (b) _b = (b); \
     _a > _b ? _a : _b; })
+	
+/*
+Third year applied security coursework.
+Using GNU MP Bignum library to perform (efficient) arbitrary precision arithmetic
+for the purpose of building and breaking RSA and ElGamal encryption schemes.
+mpz_t variables are used for integer arithmetic
+*/
 
 void myExp(mpz_t result, mpz_t x, mpz_t e, mpz_t N, int k);
 void montExp(mpz_t result, mpz_t x, mpz_t e, mp_limb_t omega, mpz_t rho_sq,\
@@ -13,9 +20,8 @@ void montRhoSq (mpz_t r, mpz_t N);
 /*
 Perform stage 1:
 
-- read each 3-tuple of N, e and m from stdin,
-- compute the RSA encryption c,
-- then write the ciphertext c to stdout.
+- read each 3-tuple of modulus N, exponent e and plaintext m from stdin,
+- compute the RSA encryption to produce ciphertext c, then write c to stdout.
 */
 
 void rsaEnc(mpz_t c, mpz_t m, mpz_t e, mpz_t N);
@@ -24,6 +30,8 @@ void stage1() {
 
   mpz_t N, e, message, result;
 
+  //gmp variables have to be initiated before assignment
+  //inits null-terminates the variables and sets them to 0
   mpz_inits(N,e,message,result,NULL);
 
   while (gmp_scanf( "%Zx", N) != EOF) {
@@ -35,8 +43,8 @@ void stage1() {
     gmp_printf( "%ZX\n", result );
   }
 
+  //clean up variables afterwards
   mpz_clears(N, e, message, result, NULL);
-
 }
 
 void rsaEnc(mpz_t c, mpz_t m, mpz_t e, mpz_t N) {
@@ -56,9 +64,9 @@ void rsaEnc(mpz_t c, mpz_t m, mpz_t e, mpz_t N) {
 /*
 Perform stage 2:
 
-- read each 9-tuple of N, d, p, q, d_p, d_q, i_p, i_q and c from stdin,
-- compute the RSA decryption m,
-- then write the plaintext m to stdout.
+- read each 9-tuple of modulus N, decryption key d, primes p and q with values
+  d_p and d_q modulo p and q respectively, inverses i_p and i_q and cipertext c from stdin,
+- compute the RSA decryption m, then write the plaintext m to stdout.
 */
 void crtDec(mpz_t m, mpz_t c, mpz_t d_p, mpz_t d_q, mpz_t p, mpz_t q,\
   mpz_t i_p, mpz_t i_q, mpz_t N);
@@ -85,7 +93,6 @@ void stage2() {
   }
 
   mpz_clears(N, d, p, q, d_p, d_q, i_p, i_q, c, m, NULL);
-  
 }
 
 void crtDec(mpz_t m, mpz_t c, mpz_t d_p, mpz_t d_q, mpz_t p, mpz_t q,\
@@ -103,7 +110,6 @@ void crtDec(mpz_t m, mpz_t c, mpz_t d_p, mpz_t d_q, mpz_t p, mpz_t q,\
   montRhoSq(rho_sq, p);
   mpz_mod(m, c, p);
   montExp(x_p, m, d_p, omega, rho_sq, p, 4);
-  //x_q = c^(d (mod q-1)) (mod q)
 
   montOmega(&omega, q);
   montRhoSq(rho_sq, q);
@@ -111,25 +117,12 @@ void crtDec(mpz_t m, mpz_t c, mpz_t d_p, mpz_t d_q, mpz_t p, mpz_t q,\
   montExp(x_q, m, d_q, omega, rho_sq, q, 4);
  
   mpz_set_ui(m, 1);
-  //By CRT
-  //m = x_p*q*q^-1(mod p) + x_q*p*p^-1(mod q) (mod N);
+  //By CRT m = x_p*q*q^-1(mod p) + x_q*p*p^-1(mod q) (mod N);
   mpz_mul(m, q, i_q);
   mpz_mul(m, m, x_p);
   mpz_mul(x_q, x_q, p);
   mpz_addmul(m, x_q, i_p);
   mpz_mod(m, m, N);
-
-  /*Garner's algorithm - write m = v_0 + v_1*p
-    then v_0 = m mod p = x_p
-    v_1 = q^-1(m - (m mod q) mod q) = (i_p * (x_q - x_p)) mod q 
-
-    m = (((x_q - x_p) * (i_p)) mod q) * p + x_p  
-  
-  mpz_sub(m, x_q, x_p);
-  mpz_mul(m, m, i_p);
-  mpz_mod(m, m, q);
-  mpz_mul(m, m, p);
-  mpz_add(m, m, x_p);*/
 
   mpz_clears(x_p, x_q, rho_sq, NULL);
 
@@ -179,11 +172,10 @@ void ElGamalEnc(mpz_t m, mpz_t p, mpz_t q, mpz_t g, mpz_t h, mpz_t c1, mpz_t c2)
   montOmega(&omega, p);
   montRhoSq(rho_sq, p);
 
-  //read randomness r from /dev/urandom
-  //sources suggest (will try to mention on marksheet) /urandom
-  //is a suitable alternative to /random even in crypto applications
-  //particularly as r is an ephemeral key, we don't need long term security
-  //as it is discarded
+  /*read randomness r from /dev/urandom
+  sources suggest (will try to mention on marksheet) /urandom
+  is a suitable alternative to /random even in crypto applications
+  particularly as r is an ephemeral key, we don't need long term security*/
   myRand = fopen("/dev/urandom", "r");
   if (myRand == NULL) {
     printf("Couldn't open urandom\n");
@@ -270,6 +262,7 @@ void ElGamalDec(mpz_t m, mpz_t p, mpz_t q, mpz_t x, mpz_t c1, mpz_t c2) {
   mpz_clear(rho_sq);
 }
 
+//Precompute Omgea=-(N[0]^-1) (mod RhoSq), used to change into Montgomery representation
 void montOmega (mp_limb_t* w, mpz_t N) {
  
   mpz_t r, w1;
@@ -284,43 +277,39 @@ void montOmega (mp_limb_t* w, mpz_t N) {
  
 }
 
+//Given modulus N, calculate 'Montgomery modulus' r such that r is a power of 2^64
+//That is, r is simply N rounded up to the next limb
 void montRhoSq (mpz_t r, mpz_t N) {
   
-  //calculate rho = b^k for smallest k s.t (2^64)^k > N
+  //Calculate rho = b^k for smallest k s.t (2^64)^k > N
   //but this is just the mpz with 1 in limb #(modulus->_mp_size) + 1
   mpz_set_ui(r, 0);
-  /*if (r->_mp_alloc < (2*N->_mp_size + 1)) {
-    mpz_realloc2(r , mp_bits_per_limb*(2*N->_mp_size + 1));
-  }
-  r->_mp_d[2*N->_mp_size] = 1;
-  r->_mp_size = 2*N->_mp_size + 1;*/
   mpz_setbit(r, 2*mp_bits_per_limb*N->_mp_size);
   mpz_mod(r, r, N);
 }
 
+//Calculate x*y*RhoSq (mod N). That is x*y in the Montgomery space
 void montMul (mpz_t result, mpz_t x, mpz_t y, mp_limb_t omega, mpz_t N) {
 
   mpz_t r;
   mpz_init(r);
 
+  //Need at least two limbs to do everything 'in place'
   if (r->_mp_alloc < 2) {
     mpz_realloc2(r, mp_bits_per_limb*2);
   }
+  /*Starting from the least significant limb, calculate
+    0 = (y[i]*x*omega)*N + y[i]*x (mod RhoSq).
+	That is, set the i'th limb to zero (mod RhoSq).
+	Then shift down by one limb and repeat.*/
   for (int i = 0; i < (N->_mp_size); i++) {
-    //could overflow, but thats fine as equivalent to working (mod base)
-    r->_mp_d[r->_mp_alloc - 1] = ((mpz_getlimbn(r, 0) + mpz_getlimbn(y,i) *\
-      mpz_getlimbn(x,0)) * omega);
-    /*mpz_set_ui(u, ((mpz_getlimbn(r, 0) + mpz_getlimbn(y,i) *\
-      mpz_getlimbn(x,0)) * mpz_getlimbn(omega,0)));*/
+    r->_mp_d[r->_mp_alloc - 1] = ((mpz_getlimbn(r, 0) + mpz_getlimbn(y,i) *
+	mpz_getlimbn(x,0)) * omega);
     mpz_addmul_ui(r, N, r->_mp_d[r->_mp_alloc - 1]);
     mpz_addmul_ui(r, x, mpz_getlimbn(y, i));
     mpz_tdiv_q_2exp(r, r, mp_bits_per_limb);
-    //difference between this ^ and manually doing it is negligible
-    /*for (int j = 0; j < (r->_mp_size - 1); j++) {
-      r->_mp_d[j] = r->_mp_d[j+1];
-    }
-    r->_mp_size--;*/
   }
+  //Either r is the final result, or else r-N is.
   if (mpz_cmp(r, N) >= 0) {
     mpz_sub(r, r, N);
   }
@@ -337,13 +326,13 @@ void montExp(mpz_t result, mpz_t x, mpz_t e, mp_limb_t omega, mpz_t rho_sq,\
   mpz_t T[(2 << (k-2))];
   mpz_t x_sq, x_mont, mpz_one;
 
-  //initialise variables
+  //Initialise variables
   for (j = 0; j < (2 << (k-2)) ; j++) {
     mpz_init(T[j]);
   }
   mpz_inits(x_sq, x_mont, mpz_one, NULL);
 
-  //deal with negative exponents (i.e in ElGamal)
+  //Deal with negative exponents (i.e in ElGamal)
   if (mpz_sgn(e) == -1) {
     invert = 1;
     mpz_abs(e, e);
@@ -351,7 +340,7 @@ void montExp(mpz_t result, mpz_t x, mpz_t e, mp_limb_t omega, mpz_t rho_sq,\
 
   mpz_set_ui(mpz_one, 1);
 
-  //precompute values (only odd powers)
+  //Precompute powers of x in the Montgomery space
   montMul(x_mont, x, rho_sq, omega, N);
   mpz_set(T[0], x_mont);
   montMul(x_sq, x_mont, x_mont, omega, N);
@@ -362,6 +351,7 @@ void montExp(mpz_t result, mpz_t x, mpz_t e, mp_limb_t omega, mpz_t rho_sq,\
   montMul(result, mpz_one, rho_sq, omega, N); 
   i = (int)mpz_sizeinbase(e, 2) - 1;
 
+  //Double and multiply algorithm with size k window and precomputed powers of x
   while (i >= 0) {
     u = 0;
     //i'th bit is 0, window size 0
@@ -394,34 +384,39 @@ void montExp(mpz_t result, mpz_t x, mpz_t e, mp_limb_t omega, mpz_t rho_sq,\
     i = l-1;
   }
 
+  //Convert back to real space
   montMul(result, result, mpz_one, omega, N);
 
   if (invert) mpz_invert(result, result, N);
 
-  //free
+  //Clean up
   for (j = 0; j < (2 << (k-2)) ; j++) {
     mpz_clear(T[j]);
   }
   mpz_clears(x_sq, x_mont, mpz_one, NULL);
 }
 
-//2k-ary slide exponentiation, without Montgomery multiplication
+/*Calculate x^e (Mod N) using 2k-ary slide exponentiation,
+  without Montgomery multiplication, but with size k window*/
 void myExp(mpz_t result, mpz_t x, mpz_t e, mpz_t N, int k) {
 
   int j, i, l, u, invert = 0;
   mpz_t T[(2 << (k-2))];
   mpz_t x_sq;
 
+  //Initialise variables
   for (j = 0; j < (2 << (k-2)) ; j++) {
     mpz_init(T[j]);
   }
   mpz_init(x_sq);
 
+  //Invert if necessary
   if (mpz_sgn(e) == -1) {
     invert = 1;
     mpz_abs(e, e);
   }
 
+  //Precompute powers of x
   mpz_set(T[0], x);
   mpz_mul(x_sq, x, x);
   for (j = 1; j < (2 << (k-2)); j++) {
@@ -432,6 +427,7 @@ void myExp(mpz_t result, mpz_t x, mpz_t e, mpz_t N, int k) {
   mpz_set_ui(result, 1); 
   i = (int)mpz_sizeinbase(e, 2) - 1;
 
+  //Double and multiply algorithm with size k window
   while (i >= 0) {
     u = 0;
     if (!mpz_tstbit(e, i)) {
@@ -462,6 +458,7 @@ void myExp(mpz_t result, mpz_t x, mpz_t e, mpz_t N, int k) {
 
   if (invert) mpz_invert(result, result, N);
 
+  //Clean up
   for (j = 0; j < (2 << (k-2)) ; j++) {
     mpz_clear(T[j]);
   }
@@ -521,7 +518,6 @@ void test() {
     rsaEnc(c1, m, e, N);
 
     //decrypt ciphertext
-    //rsaDec(result, c1, d, N);
     crtDec(result, c1, d_p, d_q, p, q, i_p, i_q, N); 
 
     diff = clock() - start;
@@ -616,9 +612,9 @@ int main( int argc, char* argv[] ) {
   else if( !strcmp( argv[ 1 ], "stage4" ) ) {
     stage4();
   }
-  /*else if( !strcmp( argv[ 1 ], "test" ) ) {
+  else if( !strcmp( argv[ 1 ], "test" ) ) {
     test();
-  }*/
+  }
   else {
     abort();
   }
