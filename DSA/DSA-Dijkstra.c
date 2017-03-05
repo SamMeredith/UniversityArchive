@@ -3,7 +3,11 @@
 #include <limits.h>
 #include <time.h>
 
-/* Dijkstra's algorithm shortest path implementation */
+/* Dijkstra's algorithm shortest path implementation.
+   Second year coursework.
+   Input is a file describing a 'city' to traverse.
+   Includes obstacles, 'blocked' regions which cannot be moved to
+   and 'teleports' which move to a specified location.   */
 
 
 /* A vertex is either a block or not a block
