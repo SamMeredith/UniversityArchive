@@ -51,14 +51,7 @@
     a_val (Add a1 a2) s = (a_val a1 s) + (a_val a2 s)
     a_val (Mult a1 a2) s = (a_val a1 s) * (a_val a2 s)
     a_val (Sub a1 a2) s = (a_val a1 s) - (a_val a2 s)
-    --a_val (UNeg a1) s = a_val (Sub (N 0) (a1)) s
-
-    {-test = Mult (Add (V "x") (V "y")) (Sub (V "z") (N 1))
-    test2 = UNeg test
-    s_blarg :: State
-    s_blarg "x" = 1
-    s_blarg "y" = 2
-    s_blarg "z" = 3-}
+    a_val (UNeg a1) s = a_val (Sub (N 0) (a1)) s		--Unary Negation
 
     --Evaluate Boolean Expressions
     b_val :: Bexp -> State -> T
@@ -285,8 +278,8 @@
 
     s_finalp = s_ds p s_test
     
-    {-exercises
-    --Checking one of the book exercises
+    {-Exercises
+
     myDiv = Comp ( Ass ("z") (N 0) ) ( While (Le (V "y") (V "x"))
             (Comp (Ass ("z") (Add (V "z") (N 1))) (Ass ("x")
             (Sub (V "x") (V "y")))))
@@ -298,6 +291,7 @@
               ((Mult (V "x") (V "n")))) (Ass "m" ((Sub (V "m") (N 1))))))  
 
     s_final = s_ds nPowerm s_test
+	
     -}
 
     -- *********************************************************
@@ -307,7 +301,7 @@
     new :: Loc -> Loc
     new n = n + 1
 
-    --Find the next location?
+    --Find the next location
     next :: Loc
     next = 0
 
@@ -362,7 +356,8 @@
                  (Ass "y" (Mult (V "z") (V "y"))))))]
           (Call "fac")
 
-    {-f :: DecP
+    {-
+	f :: DecP
     f = [("fac", Block [("z", (V "x"))] [] 
            (If 
              (Eq (V "x") (N 1))
@@ -383,13 +378,14 @@
     f2 = Block f1 f (Call "fac")
 
     f_test :: Integer
-    f_test = s_static f2 undefined undefined t 0-}
+    f_test = s_static f2 undefined undefined t 0
 	
-    {-var_test :: Stm
+    var_test :: Stm
     var_test = Block [("x", (N 1))] [] (Ass "x" (N 0))
 
     v_test :: Integer
-    v_test = s_static var_test undefined undefined t 0-}
+    v_test = s_static var_test undefined undefined t 0
+	-}
 
     --minimal store with next (0) mapped to 1
     t :: Store
