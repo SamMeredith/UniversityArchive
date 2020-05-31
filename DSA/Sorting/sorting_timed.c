@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     FILE *fp;
     int i, num_items;
     
-    fp = fopen("input.txt", "r");
+    fp = fopen("sort_input.txt", "r");
     
     if (fp)
     {
