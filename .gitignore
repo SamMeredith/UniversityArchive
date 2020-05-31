@@ -1,2 +1,6 @@
 #ignore files ending ~
 *~
+
+#ignore compiled/linked c
+*.exe
+*.obj

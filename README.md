@@ -1,2 +1,2 @@
 # UniversityArchive
-Archive of code from University
+Archive of code from university + practice/studying
