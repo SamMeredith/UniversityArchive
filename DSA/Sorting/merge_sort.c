@@ -18,6 +18,8 @@ void mergesort(int *array, int length)
     
     _mergesort(array, merged_array, 0, length - 1);
     
+    free(merged_array);
+    
     // In place merge sort - slower but interesting
     // Original paper "Practical In-Place Mergesort, Katajainen et al."
     // Taken from S.O https://stackoverflow.com/questions/2571049
