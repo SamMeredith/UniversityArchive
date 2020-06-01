@@ -1,46 +1,11 @@
-#include <stdbool.h>
-#include <stdio.h>
+#include <stdlib.h>
 
-typedef struct n
-{
-    int key;
-    struct n *left;
-    struct n *right;
-} node_t;
+#include "binary_tree.h"
 
-void delete(node_t** root, int key);
-void insert(node_t** root, int key);
-bool lookup(node_t* root, int key);
+//-------------------------------------------
+// Local function definitions
+//-------------------------------------------
 node_t* new_node(int key);
-void print_tree(node_t* root);
-
-//-------------------------------------------
-// 
-//-------------------------------------------
-int main()
-{
-    node_t *root = NULL;
-    
-    root = (node_t*)malloc(sizeof(node_t));
-    root->left = NULL;
-    root->right = NULL;
-    root->key = 10;
-    
-    insert(&root, 8);
-    insert(&root, 9);
-    insert(&root, 5);
-    insert(&root, 6);
-    insert(&root, 11);
-    
-    print_tree(root);
-    printf("\r\n");
-    
-    delete(&root, 8);
-    
-    print_tree(root);
-    
-    return 0;
-}
 
 //-------------------------------------------
 // 
@@ -94,7 +59,10 @@ void delete(node_t** root, int key)
 void insert(node_t** root, int key)
 {
     if (*root == NULL)
+    {
         *root = new_node(key);
+        return;
+    }
 
     node_t *node = *root;
 
@@ -138,18 +106,4 @@ bool lookup(node_t* node, int key)
         return lookup(node->left, key);
     else
         return lookup(node->right, key);
-}
-
-//-------------------------------------------
-// 
-//-------------------------------------------
-void print_tree(node_t* root)
-{
-    if (root == NULL)
-        return;
-    
-    printf("%d ", root->key);
-    
-    print_tree(root->left);
-    print_tree(root->right);
 }
