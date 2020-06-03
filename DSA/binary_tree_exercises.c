@@ -193,10 +193,10 @@ void print_postorder(node_t* node)
         return;
     
     if (node->left != NULL)
-        print_tree(node->left);
+        print_postorder(node->left);
     
     if (node->right != NULL)
-        print_tree(node->right);
+        print_postorder(node->right);
     
     printf("%d ", node->key);
 }
