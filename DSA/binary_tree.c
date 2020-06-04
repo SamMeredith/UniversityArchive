@@ -12,45 +12,40 @@ node_t* new_node(int key);
 //-------------------------------------------
 void delete(node_t** root, int key)
 {
+    Nnode_t* current = *root;
+    
     if (*root == NULL)
         return;
     
-    node_t *node = *root;
-   
-    if (node->key == key)
+    if (key < current->key)
+        delete(&current->left, key);
+    else if (key > current->key)
+        delete(&current->right, key);
+    else
     {
-        if (node->left == NULL)
+        if (current->left == NULL && current->right == NULL)
         {
-            *root = node->right;
+            free(*root);
+            *root = NULL;
         }
-        else if (node->right == NULL)
+        else if (current->left && current->right)
         {
-            *root = node->left;
+            // Find the inorder predecessor
+            node_t* predecessor = current->left;
+            while (predecessor->right != NULL) predecessor = predecessor->right;
+            
+            // Copy the value of the predecessor
+            current->key = predecessor->key;
+            
+            // Recursively delete the predecessor
+            delete(&current->left, predecessor->key);
         }
         else
         {
-            // Find the largest node on the left subtree
-            node_t *prev_node = node;
-            node_t *next_node = node->left;
-           
-            while (next_node->right != NULL)
-            {
-                prev_node = next_node;
-                next_node = next_node->right;
-            }
-            
-            prev_node->right = next_node->left;
-            // Replace the node to be deleted with this node
-            next_node->right = node->right;
-            next_node->left = node->left;
-           
-            *root = next_node;
+            *root = (current->left) ? current->left : current->right;
+            free(current);
         }
-       
-        free(node);
     }
-    else
-        delete((key <= node->key) ? &node->left : &node->right, key);
 }
 
 //-------------------------------------------
