@@ -7,6 +7,7 @@
 #include "merge_sort.c"
 #include "quicksort.c"
 #include "radix_sort.c"
+#include "heap_sort.c"
 
 typedef void (*sort_function_t)(int *, int);
 
@@ -65,7 +66,8 @@ int main(int argc, char *argv[])
             time_sort(array, num_items, &insert_sort, "Insert sort");
             time_sort(array, num_items, &mergesort, "Merge sort");
             time_sort(array, num_items, &quicksort, "quicksort");
-            time_sort(array, num_items, &radix_sort, "Radix_sort");
+            time_sort(array, num_items, &radix_sort, "Radix sort");
+            time_sort(array, num_items, &heap_sort, "Heap sort");
         }
     }
     
