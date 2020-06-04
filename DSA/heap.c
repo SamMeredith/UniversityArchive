@@ -36,6 +36,8 @@ void max_heapify(int array[], int i, int num_nodes)
 
 //-------------------------------------------
 // Build a heap from an array
+// This runs (a little suprisingly) in O(n) time
+// A good explanation is given here http://www.cs.umd.edu/~meesh/351/mount/lectures/lect14-heapsort-analysis-part.pdf
 //-------------------------------------------
 void build_heap(int array[], int length)
 {
